@@ -70,6 +70,7 @@ import comfy.utils
 import yaml
 
 import execution
+import serverless_execution
 import server
 from server import BinaryEventTypes
 from nodes import init_custom_nodes
@@ -87,15 +88,15 @@ def cuda_malloc_warning():
             print("\nWARNING: this card most likely does not support cuda-malloc, if you get \"CUDA error\" please run ComfyUI with: --disable-cuda-malloc\n")
 
 def prompt_worker(q, server):
-    e = execution.PromptExecutor(server)
+    e = serverless_execution.PromptExecutor(server)
     while True:
         item, item_id = q.get()
         execution_start_time = time.perf_counter()
         prompt_id = item[1]
         e.execute(item[2], prompt_id, item[3], item[4])
         q.task_done(item_id, e.outputs_ui)
-        if server.client_id is not None:
-            server.send_sync("executing", { "node": None, "prompt_id": prompt_id }, server.client_id)
+        # if server.client_id is not None:
+        #     server.send_sync("executing", { "node": None, "prompt_id": prompt_id }, server.client_id)
 
         print("Prompt executed in {:.2f} seconds".format(time.perf_counter() - execution_start_time))
         gc.collect()
